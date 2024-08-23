@@ -92,3 +92,34 @@ function isVisible (element) {
   }
   return isVisibleRec(element);
 }
+
+/*
+ **  isFocusable: Test whether the element is programmatically focusable.
+ **  Assumes isVisible() has already excluded elements that shouldn't be focused.
+ */
+function isFocusable(element) {
+	const formFocusablesArray = ["button", 'input:not([type="hidden"])', "textarea", "select"];
+	const focusablesArray = ["[tabindex]", "a[href]", "area[href]", "summary"];
+
+	let isFormElement = false;
+	for (const x of formFocusablesArray) {
+		if (element.matches(x)) {
+			isFormElement = true;
+			break;
+		}
+	}
+
+	if (isFormElement) {
+		// True if the form element itself or any parent fieldset is disabled
+		return element.closest("[disabled]") ? false : true;
+	} 
+  else {
+		for (const x of focusablesArray) {
+			// True if another kind of focusable element
+			if (element.matches(x)) {
+				return true;
+			}
+		}
+	}
+	return false;
+}

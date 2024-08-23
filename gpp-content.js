@@ -57,23 +57,32 @@ function getLandmarkTarget (element) {
   for (const selector of selectorsArray) {
     let elem = element.querySelector(selector);
     if (elem && isVisible(elem)) {
+      // True if element isn't already focusable
+      if (!isFocusable(elem)) elem.setAttribute('tabindex', '-1');
       if (debug) console.log(`target: ${elem.tagName.toLowerCase()}`);
       return elem;
     }
   }
+  // True if landmark doesn't already have a tabindex
+  if (!element.getAttribute('tabindex')) element.setAttribute('tabindex', '-1');
   return element;
 }
 
 function getHeadingTarget (element) {
-  // First choice: anchor descendant
-  const anchorDescendant = element.querySelector('a');
-  if (anchorDescendant !== null) return anchorDescendant;
+  // First choice: focusable descendant
+  const descendants = element.querySelectorAll('*');
+  for(const elem of descendants) {
+    if(isFocusable(elem)) return elem;
+  }
 
-  // Second choice: anchor ancestor
-  const anchorAncestor = element.closest('a');
-  if (anchorAncestor !== null) return anchorAncestor;
+  // Second choice: link or summary ancestor
+  const linkSummaryAncestor = element.closest('a[href], summary');
+  if (linkSummaryAncestor !== null) return linkSummaryAncestor;
 
   // Default: heading element
+  // True if heading doesn't already have a tabindex
+  if (!element.getAttribute('tabindex')) element.setAttribute('tabindex', '-1');
+
   return element;
 }
 
@@ -90,7 +99,6 @@ function skipToContent (dataId) {
     target = isHeading ? getHeadingTarget(element) : getLandmarkTarget(element);
     if (target && isVisible(target)) {
       let options = { behavior: 'smooth', block: 'center' };
-      target.setAttribute('tabindex', '-1');
       target.focus();
       target.scrollIntoView(options);
     }
